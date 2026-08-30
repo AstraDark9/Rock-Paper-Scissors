@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RPS — Rock Paper Scissors</title>
+<style>
+    :root{
+        --bg:#f3f0e8;
+        --ink:#111;
+        --paper:#fffdf5;
+        --muted:#6b675d;
+        --accent:#ff4d00;
+        --line:3px solid var(--ink);
+        --shadow:7px 7px 0 var(--ink);
+    }
+
+    *{box-sizing:border-box;margin:0;padding:0}
+
+    body{
+        min-height:100vh;
+        padding:24px;
+        display:grid;
+        place-items:center;
+        background:
+            linear-gradient(90deg, rgba(17,17,17,.035) 1px, transparent 1px),
+            linear-gradient(rgba(17,17,17,.035) 1px, transparent 1px),
+            var(--bg);
+        background-size:24px 24px;
+        color:var(--ink);
+        font-family:Arial, Helvetica, sans-serif;
+    }
+
+    button{font:inherit}
+
+    .game{
+        width:min(680px,100%);
+        background:var(--paper);
+        border:var(--line);
+        box-shadow:var(--shadow);
+    }
+
+    header{
+        padding:28px;
+        border-bottom:var(--line);
+        display:flex;
+        align-items:flex-end;
+        justify-content:space-between;
+        gap:20px;
+    }
+
+    .eyebrow{
+        display:inline-block;
+        padding:5px 8px;
+        border:2px solid var(--ink);
+        background:var(--accent);
+        color:#fff;
+        font-size:12px;
+        font-weight:900;
+        letter-spacing:.12em;
+        margin-bottom:12px;
+    }
+
+    h1{
+        font-size:clamp(38px,8vw,70px);
+        line-height:.88;
+        letter-spacing:-.065em;
+        text-transform:uppercase;
+    }
+
+    .tagline{
+        max-width:180px;
+        color:var(--muted);
+        font-size:13px;
+        line-height:1.35;
+        font-weight:700;
+        text-align:right;
+    }
+
+    .score{
+        display:grid;
+        grid-template-columns:1fr auto 1fr;
+        border-bottom:var(--line);
+    }
+
+    .score-card{
+        padding:20px 24px;
+        min-height:115px;
+    }
+
+    .score-card:first-child{border-right:var(--line)}
+    .score-card:last-child{border-left:var(--line)}
+
+    .label{
+        font-size:11px;
+        font-weight:900;
+        letter-spacing:.13em;
+        text-transform:uppercase;
+        margin-bottom:8px;
+    }
+
+    .number{
+        font-size:64px;
+        line-height:.8;
+        font-weight:900;
+        letter-spacing:-.07em;
+    }
+
+    .vs{
+        display:grid;
+        place-items:center;
+        padding:12px;
+        font-size:13px;
+        font-weight:900;
+        writing-mode:vertical-rl;
+    }
+
+    .arena{
+        padding:28px;
+        border-bottom:var(--line);
+    }
+
+    .moves{
+        display:grid;
+        grid-template-columns:1fr 48px 1fr;
+        align-items:center;
+        gap:12px;
+        margin-bottom:20px;
+    }
+
+    .move{
+        min-height:150px;
+        border:var(--line);
+        background:#eee9dc;
+        display:grid;
+        place-items:center;
+        position:relative;
+    }
+
+    .move .emoji{
+        font-size:72px;
+        line-height:1;
+        filter:grayscale(1);
+    }
+
+    .move .move-label{
+        position:absolute;
+        top:0;
+        left:0;
+        padding:6px 8px;
+        background:var(--ink);
+        color:#fff;
+        font-size:10px;
+        font-weight:900;
+        letter-spacing:.1em;
+    }
+
+    .sword{
+        text-align:center;
+        font-size:22px;
+        font-weight:900;
+    }
+
+    .result{
+        border:var(--line);
+        padding:15px 18px;
+        background:var(--ink);
+        color:#fff;
+        font-size:20px;
+        font-weight:900;
+        text-align:center;
+        text-transform:uppercase;
+        letter-spacing:-.02em;
+    }
+
+    .result.win{background:var(--accent)}
+    .result.draw{background:#ded9cc;color:var(--ink)}
+
+    .controls{
+        padding:28px;
+    }
+
+    .prompt{
+        font-size:12px;
+        font-weight:900;
+        letter-spacing:.12em;
+        text-transform:uppercase;
+        margin-bottom:14px;
+    }
+
+    .choices{
+        display:grid;
+        grid-template-columns:repeat(3,1fr);
+        gap:12px;
+    }
+
+    .choice-button{
+        min-height:125px;
+        border:var(--line);
+        background:var(--paper);
+        color:var(--ink);
+        cursor:pointer;
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+        justify-content:center;
+        gap:8px;
+        transition:transform .12s, background .12s, color .12s, box-shadow .12s;
+    }
+
+    .choice-button .emoji{font-size:48px;line-height:1}
+    .choice-button .name{
+        font-size:12px;
+        font-weight:900;
+        letter-spacing:.1em;
+        text-transform:uppercase;
+    }
+
+    .choice-button:hover{
+        transform:translate(-4px,-4px);
+        background:var(--accent);
+        color:#fff;
+        box-shadow:5px 5px 0 var(--ink);
+    }
+
+    .choice-button:active{
+        transform:translate(0,0);
+        box-shadow:none;
+    }
+
+    .choice-button:focus-visible{
+        outline:4px solid var(--accent);
+        outline-offset:3px;
+    }
+
+    .bottom{
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        gap:15px;
+        padding:16px 28px;
+        border-top:var(--line);
+        background:#e7e2d5;
+    }
+
+    .rules{
+        color:var(--muted);
+        font-size:11px;
+        line-height:1.4;
+        font-weight:700;
+    }
+
+    .reset{
+        border:2px solid var(--ink);
+        background:var(--paper);
+        color:var(--ink);
+        padding:10px 15px;
+        cursor:pointer;
+        font-size:11px;
+        font-weight:900;
+        text-transform:uppercase;
+        letter-spacing:.08em;
+    }
+
+    .reset:hover{
+        background:var(--ink);
+        color:#fff;
+    }
+
+    .animate{animation:pop .18s ease-out}
+    @keyframes pop{
+        0%{transform:scale(.92)}
+        100%{transform:scale(1)}
+    }
+
+    @media(max-width:560px){
+        body{padding:12px}
+        .game{box-shadow:4px 4px 0 var(--ink)}
+        header{padding:20px;align-items:flex-start;flex-direction:column}
+        .tagline{text-align:left;max-width:none}
+        .score-card{padding:18px 15px}
+        .number{font-size:50px}
+        .arena,.controls{padding:18px}
+        .move{min-height:115px}
+        .move .emoji{font-size:52px}
+        .choices{gap:8px}
+        .choice-button{min-height:105px}
+        .choice-button .emoji{font-size:40px}
+        .bottom{padding:14px 18px;align-items:flex-start;flex-direction:column}
+    }
+</style>
+</head>
+
+<body>
+<main class="game">
+    <header>
+        <div>
+            <span class="eyebrow">GAME / 001</span>
+            <h1>Rock<br>Paper<br>Scissors</h1>
+        </div>
+        <p class="tagline">Simple rules.<br>Zero distractions.<br>Beat the machine.</p>
+    </header>
+
+    <section class="score" aria-label="Score">
+        <div class="score-card">
+            <div class="label">You</div>
+            <div class="number" id="playerScore">0</div>
+        </div>
+        <div class="vs">VS</div>
+        <div class="score-card">
+            <div class="label">Computer</div>
+            <div class="number" id="computerScore">0</div>
+        </div>
+    </section>
+
+    <section class="arena">
+        <div class="moves">
+            <div class="move">
+                <span class="move-label">YOUR MOVE</span>
+                <span class="emoji" id="playerChoice">?</span>
+            </div>
+            <div class="sword">VS</div>
+            <div class="move">
+                <span class="move-label">COMPUTER</span>
+                <span class="emoji" id="computerChoice">?</span>
+            </div>
+        </div>
+        <div class="result" id="result">Make your move!</div>
+    </section>
+
+    <section class="controls">
+        <div class="prompt">Choose your weapon</div>
+        <div class="choices">
+            <button class="choice-button" onclick="play('rock')" aria-label="Choose rock">
+                <span class="emoji">✊</span>
+                <span class="name">Rock</span>
+            </button>
+            <button class="choice-button" onclick="play('paper')" aria-label="Choose paper">
+                <span class="emoji">✋</span>
+                <span class="name">Paper</span>
+            </button>
+            <button class="choice-button" onclick="play('scissors')" aria-label="Choose scissors">
+                <span class="emoji">✌️</span>
+                <span class="name">Scissors</span>
+            </button>
+        </div>
+    </section>
+
+    <footer class="bottom">
+        <div class="rules">ROCK > SCISSORS · SCISSORS > PAPER · PAPER > ROCK</div>
+        <button class="reset" onclick="resetGame()">Reset Game</button>
+    </footer>
+</main>
+
+<script>
+    let playerScore = 0;
+    let computerScore = 0;
+
+    const emoji = {
+        rock: "✊",
+        paper: "✋",
+        scissors: "✌️"
+    };
+
+    function play(playerChoice) {
+        const choices = Object.keys(emoji);
+        const computerChoice = choices[Math.floor(Math.random() * choices.length)];
+
+        let result;
+        let type = "";
+
+        if (playerChoice === computerChoice) {
+            result = "Draw — same move.";
+            type = "draw";
+        } else if (
+            (playerChoice === "rock" && computerChoice === "scissors") ||
+            (playerChoice === "paper" && computerChoice === "rock") ||
+            (playerChoice === "scissors" && computerChoice === "paper")
+        ) {
+            result = "You win.";
+            playerScore++;
+            type = "win";
+        } else {
+            result = "Computer wins.";
+            computerScore++;
+        }
+
+        document.getElementById("playerChoice").textContent = emoji[playerChoice];
+        document.getElementById("computerChoice").textContent = emoji[computerChoice];
+        document.getElementById("playerScore").textContent = playerScore;
+        document.getElementById("computerScore").textContent = computerScore;
+
+        const resultElement = document.getElementById("result");
+        resultElement.textContent = result;
+        resultElement.className = "result " + type + " animate";
+
+        setTimeout(() => resultElement.classList.remove("animate"), 200);
+    }
+
+    function resetGame() {
+        playerScore = 0;
+        computerScore = 0;
+
+        document.getElementById("playerScore").textContent = "0";
+        document.getElementById("computerScore").textContent = "0";
+        document.getElementById("playerChoice").textContent = "?";
+        document.getElementById("computerChoice").textContent = "?";
+
+        const resultElement = document.getElementById("result");
+        resultElement.textContent = "Make your move!";
+        resultElement.className = "result";
+    }
+</script>
+</body>
+</html>
